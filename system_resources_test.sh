@@ -11,7 +11,7 @@ diskThreshold = 60
 
 #CPU Idle time checks the precentage of Idle CPU time. 
 #top -bn1 grabs real time snapshot of system processes and pipes it to grep.
-#Grep then searches for any lines containing CPUs 
+#Grep then takes the output from top -bn1 and  searches it for any lines containing CPUs 
 #The output of grep is piped to awk which prints the 8th line that contains the idle CPU time  
 cpuIdleTime=$(top -bn1 | grep "Cpu(s)" | awk '{print $8}')
 
@@ -62,4 +62,14 @@ cpuUsed=$(echo "100 - $cpuUsed" | bc)
     return 0
   fi
 
-
+#To check Disk Usage
+diskUsed=$(df / | grep / | awk '{print $5}' | sed 's/%//')
+  
+  if [ "$diskUsed" -gt "$diskThreshold" ];
+   then
+    echo "Disk usage is above threshold: $diskUsed%"
+    return 1
+  else
+    echo "Disk usage is within limits: $diskUsed%"
+    return 0
+  fi
