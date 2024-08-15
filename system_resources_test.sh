@@ -1,11 +1,11 @@
-#!bin/bash
+#!/bin/bash
 
 #create a baash script that checks for system resources (memory,cpu, disk)
 # make sure you use conditionals statements and use exit code 0 or 1
 
-cpuThreshold = 60
-memThreshold = 60
-diskThreshold = 60
+cpuThreshold=80
+memThreshold=80
+diskThreshold=80
 
 #To Check CPU Usage
 
@@ -17,19 +17,19 @@ cpuIdleTime=$(top -bn1 | grep "Cpu(s)" | awk '{print $8}')
 
 #CPU used is  calculated by subtracting the idle time from 100.
 #the result is piped to bc (Basic Calcultor) because it is best for handling float expressions. 
-cpuUsed=$(echo "100 - $cpuUsed" | bc)
+cpuUsed=$(echo "100 - $cpuIdleTime" | bc)
   
 #If the Cpu Usage is greater than the threshhold, it will return an exit code of 1. 
 #Exit code 1 is for generic errors. In this case: The error is the CPU Usage is above the threshold. 
 #If it is within the threshold, it will return an exit code of 0, which means the the threshold is within limits and is a succesful execution. 
-   if [ "$cpuUsed" -gt "$cpuThreshold" | bc -l ];
-   then
-      echo "CPU usage is above threshold: $cpuUsed%"
-      return 1
-  else
-     echo "CPU usage is within limits: $cpuUsed%"
-     return 0
-  fi
+if [ $(echo "$cpuUsed > $cpuThreshold" | bc -l) ];
+then
+    echo "CPU usage is above threshold:"  "$cpuUsed" "%"
+    echo "1"
+else
+    echo "CPU usage is within limits:" " $cpuUsed" "%"
+    echo "0"
+fi
 
 #To Check Memory Usage
  
@@ -38,38 +38,42 @@ cpuUsed=$(echo "100 - $cpuUsed" | bc)
 #for the lines that contain the word 'mem'. Once that output
 #is recieved, the 3rd column is printed which is the Memory Used 
 #column
-  memUsed=$(free | grep Mem | awk '{print $3}')
+memUsed=$(free | grep "Mem" | awk '{print $3}')
 
 #Memory Total: The free command is used again to show all of the 
 #memory usage stats. That output is then piped to search for 
 #lines containing 'Mem'. That output is then piped so it 
 #prints only the 2nd column which is the Memory Total  
 
-  memTotal=$(free | grep Mem | awk '{print $2}')
+memTotal=$(free | grep "Mem" | awk '{print $2}')
 
 #Memory Usage: Divides the memory used by the memory total and
 #multiples it by 100 to convert it into a percentage. that 
 #output is piped to bc (basic Calculator) because it handle 
 #floating point  expressions. 
-  memUsage=$(echo "$memUsed  / $memTotal * 100" | bc)
+memUsage=$(echo "$memUsed"  / "$memTotal" * 100 | bc )
   
-  if [ "$memUsage" -gt "$memThreshold" | bc -l ];
-  then
-     echo "Memory usage is above threshold: $memUsage%"
-     return 1
-  else
-     echo "Memory usage is within limits: $memUsage%"
-    return 0
-  fi
+if [ "$memUsage" -gt "$memThreshold" | bc -l ];
+then
+   echo "Memory usage is above threshold:" "$memUsage" "%"
+   echo "1"
+else
+   echo "Memory usage is within limits:" " $memUsage" "%"
+   echo "0"
+fi
 
 #To check Disk Usage
-diskUsed=$(df / | grep / | awk '{print $5}' | sed 's/%//')
+#Calculates the disk usage of the root directory
+#diskUsed: reports the amount of disk space used and is available in the root directory.
+#The output for the amount of disk space used is piped to grep which searches the root directory
+#and finds that information. It then prints the 5th line of the disk information. 
+diskUsed=$( df / | grep / | awk '{print $5}') 
   
-  if [ "$diskUsed" -gt "$diskThreshold" ];
-   then
-    echo "Disk usage is above threshold: $diskUsed%"
-    return 1
-  else
-    echo "Disk usage is within limits: $diskUsed%"
-    return 0
-  fi
+if [ "$diskUsed" -gt "$diskThreshold" ];
+then
+    echo "Disk usage is above threshold:" " $diskUsed" "%"
+    echo "1"
+else
+    echo "Disk usage is within limits:" " $diskUsed" "%"
+    echo 0
+fi
