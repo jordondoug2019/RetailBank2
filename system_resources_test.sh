@@ -22,13 +22,13 @@ cpuUsed=$(echo "100 - $cpuIdleTime" | bc)
 #If the Cpu Usage is greater than the threshhold, it will return an exit code of 1. 
 #Exit code 1 is for generic errors. In this case: The error is the CPU Usage is above the threshold. 
 #If it is within the threshold, it will return an exit code of 0, which means the the threshold is within limits and is a succesful execution. 
-if [ $(echo "$cpuUsed > $cpuThreshold" | bc -l) ];
+if [ "$cpuUsed"  > "$cpuThreshold" | bc -l ]; 
 then
-    echo "CPU usage is above threshold:"  "$cpuUsed" "%"
-    echo "1"
+    echo "CPU usage is above threshold: $cpuUsed%"
+    exit 1
 else
-    echo "CPU usage is within limits:" " $cpuUsed" "%"
-    echo "0"
+    echo "CPU usage is within limits: $cpuUsed%"
+   exit 0
 fi
 
 #To Check Memory Usage
@@ -53,13 +53,13 @@ memTotal=$(free | grep "Mem" | awk '{print $2}')
 #floating point  expressions. 
 memUsage=$(echo "$memUsed"  / "$memTotal" * 100 | bc )
   
-if [ "$memUsage" -gt "$memThreshold" | bc -l ];
+if [ "$memUsed"  >  "$memThreshold" | bc -l ]
 then
-   echo "Memory usage is above threshold:" "$memUsage" "%"
-   echo "1"
+    echo "Memory usage is above threshold: $memUsage%"
+    exit 1
 else
-   echo "Memory usage is within limits:" " $memUsage" "%"
-   echo "0"
+    echo "Memory usage is within limits: $memUsage%"
+    exit 0
 fi
 
 #To check Disk Usage
@@ -71,9 +71,9 @@ diskUsed=$( df / | grep / | awk '{print $5}')
   
 if [ "$diskUsed" -gt "$diskThreshold" ];
 then
-    echo "Disk usage is above threshold:" " $diskUsed" "%"
-    echo "1"
+    echo "Disk usage is above threshold: $diskUsed%"
+    exit 1
 else
-    echo "Disk usage is within limits:" " $diskUsed" "%"
-    echo 0
+    echo "Disk usage is within limits: $diskUsed%"
+    exit 0 
 fi
