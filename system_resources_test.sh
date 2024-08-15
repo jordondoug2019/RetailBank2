@@ -22,13 +22,12 @@ cpuUsed=$(echo "100 - $cpuIdleTime" | bc)
 #If the Cpu Usage is greater than the threshhold, it will return an exit code of 1. 
 #Exit code 1 is for generic errors. In this case: The error is the CPU Usage is above the threshold. 
 #If it is within the threshold, it will return an exit code of 0, which means the the threshold is within limits and is a succesful execution. 
-if [ "$cpuUsed"  > "$cpuThreshold" | bc -l ]; 
-then
+if [ $(echo "$cpuUsed > $cpuThreshold" | bc -l) -eq 1 ]; then
     echo "CPU usage is above threshold: $cpuUsed%"
-    exit 1
+    exit_status=1
 else
     echo "CPU usage is within limits: $cpuUsed%"
-   exit 0
+    exit_status=0
 fi
 
 #To Check Memory Usage
@@ -51,15 +50,14 @@ memTotal=$(free | grep "Mem" | awk '{print $2}')
 #multiples it by 100 to convert it into a percentage. that 
 #output is piped to bc (basic Calculator) because it handle 
 #floating point  expressions. 
-memUsage=$(echo "$memUsed"  / "$memTotal" * 100 | bc )
+memUsage=$(echo "$memUsed / $memTotal * 100" | bc)
   
-if [ "$memUsed"  >  "$memThreshold" | bc -l ]
-then
-    echo "Memory usage is above threshold: $memUsage%"
-    exit 1
+if [ $(echo "$memUsage > $memThreshold" | bc -l) -eq 1 ]; then
+    echo "Memory usage is above threshold: $memUsage"
+    exit_status=1
 else
-    echo "Memory usage is within limits: $memUsage%"
-    exit 0
+    echo "Memory usage is within limits: $memUsage"
+    exit_status=0
 fi
 
 #To check Disk Usage
@@ -67,13 +65,14 @@ fi
 #diskUsed: reports the amount of disk space used and is available in the root directory.
 #The output for the amount of disk space used is piped to grep which searches the root directory
 #and finds that information. It then prints the 5th line of the disk information. 
-diskUsed=$( df / | grep / | awk '{print $5}') 
+diskUsed=$( df / | grep / | awk '{print $5}'| cut -d'%' -f1 ) 
   
-if [ "$diskUsed" -gt "$diskThreshold" ];
-then
-    echo "Disk usage is above threshold: $diskUsed%"
-    exit 1
+
+if [ "$diskUsed" -gt "$diskThreshold" ]; then
+    echo "Disk usage is above threshold: $diskUsed"
+    exit_status=1
 else
-    echo "Disk usage is within limits: $diskUsed%"
-    exit 0 
+    echo "Disk usage is within limits: $diskUsed"
+    exit_status=0
 fi
+
