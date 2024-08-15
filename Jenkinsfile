@@ -23,7 +23,7 @@ pipeline {
           steps {
               sh '''#!/bin/bash
               source venv/bin/activate
-              eb create RetailBank2-env --single
+              eb create RetailBank2-env2 --single
               '''
           }
       }
